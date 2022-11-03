@@ -1,17 +1,6 @@
 import re
 import unicodedata
-
-
-UPC_INDEX = 0
-TYPE_INDEX = 1
-PRICE_EX_INDEX = 2
-PRICE_INC_INDEX = 3
-TAX_INDEX = 4
-QUANTITY_INDEX = 5
-DESCRIPTION_INDEX = 3
-GENRE_INDEX = 2
-RATING_INDEX = 2
-DEFAULT_FLOAT = 0.0
+from constants import Indexes, DEFAULT_FLOAT, DEFAULT_VALUE, RATING_DICT
 
 
 class BookDataExtractor(object):
@@ -40,20 +29,26 @@ class BookDataExtractor(object):
         Returns UPC of the book as a string
         :return str:
         """
+        upc = None
+        result = self.html_text.find_all("td")
         try:
-            result = self.html_text.find_all("td")
-            return result[UPC_INDEX].text
+            upc = result[Indexes.UPC].text
         except IndexError:
-            print("Book UPC does not exist on this webpage!")
-            return None
+            print("Book UPC not found!")
+        return upc
 
     def get_title(self):
         """
         Returns title of the book as a string
         :return str:
         """
-        title = self.html_text.find("h1").text
-        encoded_title = unicodedata.normalize("NFKD", title).encode("latin-1", "ignore")
+        encoded_title = None
+        title = self.html_text.find("h1")
+        try:
+            encoded_title = unicodedata.normalize("NFKD", title.text)\
+                            .encode("latin-1", "ignore")
+        except AttributeError:
+            print("Title not found!")
         return encoded_title
 
     def get_genre(self):
@@ -61,32 +56,38 @@ class BookDataExtractor(object):
         Returns book genre as a string
         :return str:
         """
+        genre = None
         line = self.html_text.find_all("li")
-        return line[GENRE_INDEX].text.strip()
+        try:
+            genre = line[Indexes.GENRE].text.strip()
+        except IndexError:
+            print("Genre not found!")
+        return genre
 
     def get_product_type(self):
         """
         Returns product type as a string
         :return str:
         """
+        product_type = None
         result = self.html_text.find_all("td")
         try:
-            return result[TYPE_INDEX].text
+            product_type = result[Indexes.TYPE].text
         except IndexError:
-            print("Product type does not exist on this webpage!")
-            return None
+            print("Product type not found!")
+        return product_type
 
     def get_price_incl_tax(self):
         """
         Returns book price as a float
         :return float:
         """
+        price = DEFAULT_FLOAT
         result = self.html_text.find_all("td")
         try:
-            price = re.findall(r"(\d+.\d+)", result[PRICE_INC_INDEX].text).pop()
+            price = re.findall(r"(\d+.\d+)", result[Indexes.PRICE_INC].text).pop()
         except IndexError:
-            print("Book price does not exist on this webpage!")
-            return DEFAULT_FLOAT
+            print("Book price not found!")
         return float(price)
 
     def get_price_excl_tax(self):
@@ -94,12 +95,12 @@ class BookDataExtractor(object):
         Returns book price exclusive tax as a float
         :return float:
         """
+        price = DEFAULT_FLOAT
         result = self.html_text.find_all("td")
         try:
-            price = re.findall(r"(\d+.\d+)", result[PRICE_EX_INDEX].text).pop()
+            price = re.findall(r"(\d+.\d+)", result[Indexes.PRICE_EX].text).pop()
         except IndexError:
-            print("Book price does not exist on this webpage!")
-            return DEFAULT_FLOAT
+            print("Book price excl. tax not found!")
         return float(price)
 
     def get_tax(self):
@@ -107,12 +108,12 @@ class BookDataExtractor(object):
         Returns book price tax as a float
         :return float:
         """
+        tax = DEFAULT_FLOAT
         result = self.html_text.find_all("td")
         try:
-            tax = re.findall(r"(\d+.\d+)", result[TAX_INDEX].text).pop()
+            tax = re.findall(r"(\d+.\d+)", result[Indexes.TAX].text).pop()
         except IndexError:
-            print("Book tax does not exist on this webpage!")
-            return DEFAULT_FLOAT
+            print("Book tax not found!")
         return float(tax)
 
     def get_quantity(self):
@@ -120,47 +121,42 @@ class BookDataExtractor(object):
         Returns book availability as integer
         :return int:
         """
+        qty = DEFAULT_VALUE
         result = self.html_text.find_all("td")
         try:
-            line = result[QUANTITY_INDEX].text
+            line = result[Indexes.QUANTITY].text
+            qty = re.findall(r"(\d+)", line).pop()
         except IndexError:
-            print("Book quantity does not exist on this webpage!")
-            return None
-
-        quantity_line = re.findall(r"(\d+)", line)
-        quantity = quantity_line.pop()
-        return int(quantity)
+            print("Book quantity not found!")
+        return int(qty)
 
     def get_rating(self):
         """
         Returns book rating as int
         :return int:
         """
+        rating = "Zero"
         result = self.html_text.find_all("p")
         search_pattern = r"([a-z]{4})-([a-z]{6})\W{1}([A-Z][a-z]+)"
         match = re.findall(search_pattern, str(result))
-        rating_list = {
-            "One": 1,
-            "Two": 2,
-            "Three": 3,
-            "Four": 4,
-            "Five": 5,
-            "Zero": 0,
-        }
-        for item in match:
-            rating = item[RATING_INDEX]
-            return rating_list[rating]
+        try:
+            item = match.pop(DEFAULT_VALUE)
+            rating = item[Indexes.RATING]
+        except IndexError:
+            print("Book rating not found!")
+        return RATING_DICT[rating]
 
     def get_description(self):
         """
         Returns the description of the book as a string
         :return str:
         """
+        encoded_description = None
+        article = self.html_text.find("article", class_="product_page")
         try:
-            article = self.html_text.find("article", class_="product_page")
             paragraphs = article.find_all("p")
+            description = paragraphs[Indexes.DESCRIPTION].text.strip()
+            encoded_description = unicodedata.normalize("NFKD", description).encode("latin-1", "ignore")
         except AttributeError:
-            print("Book description does not exist on this webpage!")
-            return None
-        description = paragraphs[DESCRIPTION_INDEX].text.encode("utf-8").strip()
-        return description
+            print("Book description not found!")
+        return encoded_description

@@ -1,8 +1,6 @@
 import re
+import constants
 from collections import OrderedDict
-
-GENRES_START_INDEX = 3
-GENRES_END_INDEX = 53
 
 
 class PageDataExtractor(object):
@@ -35,12 +33,15 @@ class PageDataExtractor(object):
         try:
             paging = lines.pop().find_all("strong")
         except IndexError:
-            return 1
+            print("Books count not found!")
+            return constants.DEFAULT_VALUE
+
         if len(paging) == 1:
             return int(paging.pop().text)
+
         to_book = int(paging.pop().text)
         from_book = int(paging.pop().text)
-        return to_book - from_book + 1
+        return to_book - from_book + constants.BOOKS_CALC_CONST
 
     def get_next_page(self):
         """
@@ -52,21 +53,29 @@ class PageDataExtractor(object):
             return None
         return next_form.a["href"]
 
+    @staticmethod
+    def __collect_genres(categories):
+        genres = {}
+        start = constants.GENRES_START_INDEX
+        end = constants.GENRES_END_INDEX
+        for category in categories[start:end]:
+            url_extension = str(category).split('"')[constants.GENRES_INDEX]
+            name = re.findall(r"(?:[A-Za-z]+\s)?[A-Za-z]+", category.text)
+            genres[str.join(" ", name).lower()] = str(url_extension).replace(
+                "index.html", ""
+            )
+        return genres
+
     def get_books_categories(self):
         """
         Returns a dictionary with all existing genres
         key: genre name, value: genre url
         :return dict:
         """
-        genres = {}
         categories = self.html_text.find_all("li")
-        for category in categories[GENRES_START_INDEX:GENRES_END_INDEX]:
-            url_extension = str(category).split('"')[1]
-            name = re.findall(r"(?:[A-Za-z]+\s)?[A-Za-z]+", category.text)
-            genres[str.join(" ", name).lower()] = str(url_extension).replace(
-                "index.html", ""
-            )
-        return genres
+        if not categories:
+            return {}
+        return self.__collect_genres(categories)
 
     def get_titles_from_collection_page(self, count):
         """
@@ -74,15 +83,19 @@ class PageDataExtractor(object):
         key: book title, value: book url
         :return dict:
         """
-        titles_dict = OrderedDict()
         titles_list = self.html_text.find_all("img")
         urls_list = self.html_text.find_all("h3")
-        try:
-            for index, line in enumerate(titles_list[:count]):
-                title = line["alt"].lower()
-                url = urls_list[index]
-                url = url.find("a")["href"]
-                titles_dict[title] = url
-        except IndexError:
-            return None
+        if not titles_list or not urls_list:
+            print("Titles or titles URLs not found!")
+            return {}
+        return self.__collect_titles(titles_list, urls_list, count)
+
+    @staticmethod
+    def __collect_titles(titles_list, urls_list, count):
+        titles_dict = OrderedDict()
+        for index, line in enumerate(titles_list[:count]):
+            title = line["alt"].lower()
+            url = urls_list[index]
+            url = url.find("a")["href"]
+            titles_dict[title] = url
         return titles_dict
