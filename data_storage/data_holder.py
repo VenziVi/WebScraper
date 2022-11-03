@@ -66,7 +66,7 @@ class DataHolder:
             path = "output/"
 
         with open(os.path.join(path, "book_collection"), "w") as writer:
-            writer.write(json.dumps(books_data, indent=2))
+            writer.write(json.dumps(books_data, indent=2, encoding="latin-1"))
 
     def __sort_collection(self, sorting_list):
         is_descending = False
