@@ -1,4 +1,4 @@
-# Python Bookscraper Project - Team 2
+# Web Scraper
 
 * ## Project Summary
 The purpose of this project is to scrape https://books.toscrape.com and collect its data, based on users' preferences. The collection can store all books on the website or a number of books based on the input filters. After the data has been collected, the complete JSON can be sorted if required.
