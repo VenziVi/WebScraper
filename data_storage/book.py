@@ -1,3 +1,7 @@
+import random
+import string
+
+
 class Book(object):
     def __init__(self, upc, title, genre, product_type, price_with_tax,
                  price_excl_tax, tax, qty, rating, description):
@@ -12,6 +16,16 @@ class Book(object):
         self.rating = rating
         self.description = description
 
+    @property
+    def upc(self):
+        return self.__upc
+
+    @upc.setter
+    def upc(self, value):
+        if not value:
+            self.__upc = "N/A" + " -{0}".format(self.__upc_generator())
+        else:
+            self.__upc = value
     @property
     def title(self):
         return self.__title
@@ -33,6 +47,17 @@ class Book(object):
             self.__genre = "N/A"
         else:
             self.__genre = value
+
+    @property
+    def product_type(self):
+        return self.__product_type
+
+    @product_type.setter
+    def product_type(self, value):
+        if not value:
+            self.__product_type= "N/A"
+        else:
+            self.__product_type = value
 
     @property
     def price(self):
@@ -102,3 +127,10 @@ class Book(object):
 
     def __getitem__(self, item):
         return getattr(self, item.lower())
+
+    @staticmethod
+    def __upc_generator():
+        f_part = str(random.randint(1000, 10000))
+        letter = random.choice(string.ascii_letters)
+        s_part = str(random.randint(10, 1000))
+        return f_part + letter + s_part
