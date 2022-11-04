@@ -28,12 +28,12 @@ def main(args):
     request_handler = init_request_handler()
     if not request_handler:
         exit(1)
-    url_collector = UrlCollector(request_handler)
-    data_holder = DataHolder()
 
     if args.gui:
-        gui.button.Button(request_handler, url_collector, data_holder)
+        gui.button.Button(request_handler)
     else:
+        url_collector = UrlCollector(request_handler)
+        data_holder = DataHolder()
         collector = CollectData(args.books, args.genres, args.filters, args.keywords, args.title,
                                 args.titles_json, request_handler, url_collector, data_holder)
         collector.collect_books_data()
