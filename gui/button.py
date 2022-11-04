@@ -2,6 +2,9 @@ import Tkinter as tk
 from os import environ
 from PIL import ImageTk, Image
 import tkFileDialog as filedialog
+
+from data_extraction.url_collector import UrlCollector
+from data_storage.data_holder import DataHolder
 from radiobutton import RadioButton
 from popup_window import PopUpWindowSuccess, PopUpWindowFailure
 
@@ -12,7 +15,7 @@ import pygame
 
 
 class Button(RadioButton):
-    def __init__(self, request_handler, url_collector, data_holder):
+    def __init__(self, request_handler):
         RadioButton.__init__(self)
         self.clearAllButton = tk.Button(self.root, text="Clear all", command=self.clear)
         self.clearAllButtonWindow = self.canvas1.create_window(70, 460, window=self.clearAllButton)
@@ -28,10 +31,7 @@ class Button(RadioButton):
         self.folder_path = tk.StringVar()
         self.browseButton = tk.Button(text="Get titles from a file", command=self.browse_button)
         self.browseButtonWindow = self.canvas1.create_window(100, 350, window=self.browseButton)
-
         self.request_handler = request_handler
-        self.url_collector = url_collector
-        self.data_holder = data_holder
 
         self.root.mainloop()
 
@@ -78,17 +78,20 @@ class Button(RadioButton):
         filters = self.set_filters()
         titles_path = self.set_titles_path()
         keywords = None
+        data_holder = DataHolder()
+        url_collector = UrlCollector(self.request_handler)
         collector = CollectData(books_count, genres, filters, keywords, title, titles_path,
-                                self.request_handler, self.url_collector, self.data_holder)
+                                self.request_handler, url_collector, data_holder)
         collector.collect_books_data()
         collector.collection.sort_collection(sorting)
-        self.display_popup(collector.collection.export_data_to_file(True))
+        collector.collection.export_data_to_file()
+        self.display_popup(collector.collection.__len__())
 
-    def display_popup(self, value):
-        if value:
-            PopUpWindowSuccess()
+    def display_popup(self, items):
+        if items > 0:
+            pop = PopUpWindowSuccess()
         else:
-            PopUpWindowFailure()
+            pop = PopUpWindowFailure()
 
     def set_filters(self):
         filters = []
