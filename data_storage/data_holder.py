@@ -9,16 +9,10 @@ DEFAULT_SORT = ["title-ascending"]
 
 class DataHolder:
     def __init__(self):
-        """
-        Class constructor. Takes no arguments, but it creates an instances of
-        class Book and SortingMixin, which are used to store book data and sort
-        the list data struct, containing class instances for every book scraped.
-        """
         self.__data_struct = []
 
     def add_entity(self, upc, title, genre, pr_type, price_it,
                    price_et, tax, qty, rating, description):
-
         self.__data_struct.append(Book(upc, title, genre, pr_type, price_it,
                                        price_et, tax, qty, rating, description))
 
@@ -28,18 +22,14 @@ class DataHolder:
             sorting_list = sorting
         self.__sort_collection(sorting_list)
 
-    def export_data_to_file(self, gui=None):
+    def export_data_to_file(self):
         if not self.__data_struct:
             self.__write_data_to_file("Book collection is empty!")
             print("Collection is empty!")
-            if gui:
-                return False
         else:
             collection = self.__fill_book_collection()
             self.__write_data_to_file(collection)
             print("JSON created successfully!")
-            if gui:
-                return True
 
     def __fill_book_collection(self):
         collection = OrderedDict()
@@ -77,3 +67,6 @@ class DataHolder:
             if sort_type == "descending":
                 is_descending = True
             self.__data_struct.sort(key=lambda x: x[argument.capitalize()], reverse=is_descending)
+
+    def __len__(self):
+        return len(self.__data_struct)
