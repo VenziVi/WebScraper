@@ -14,7 +14,7 @@ class ArgumentParser(object):
     The ArgumentParser class reads and converts command line arguments.
     """
     def __init__(self):
-        self._parser = argparse.ArgumentParser(
+        self.__parser = argparse.ArgumentParser(
             description="""The following arguments can be used:
                 b - number of books
                 g - list of genres to search through
@@ -26,18 +26,18 @@ class ArgumentParser(object):
                 X - GUI """,
             formatter_class=argparse.RawTextHelpFormatter,
         )
-        self._parser.add_argument("-b", "--books", nargs="?", type=int, choices=range(1, 1001), metavar="[1-1000]")
-        self._parser.add_argument("-g", "--genres", nargs="+", type=str)
-        self._parser.add_argument("-s", "--sorting", nargs="+", choices=SORTING_LIST, metavar="sorting list")
-        self._parser.add_argument("-f", "--filters", nargs="+", type=self.validate_filter)
-        self._parser.add_argument("-d", "--keywords", nargs="+", type=str)
-        self._parser.add_argument("-t", "--title", nargs="+", type=str)
-        self._parser.add_argument("-F", "--titles_json", type=str)
-        self._parser.add_argument("-X", "--gui", action="store_true")
+        self.__parser.add_argument("-b", "--books", nargs="?", type=int, choices=range(1, 1001), metavar="[1-1000]")
+        self.__parser.add_argument("-g", "--genres", nargs="+", type=str)
+        self.__parser.add_argument("-s", "--sorting", nargs="+", choices=SORTING_LIST, metavar="sorting list")
+        self.__parser.add_argument("-f", "--filters", nargs="+", type=self.validate_filter)
+        self.__parser.add_argument("-d", "--keywords", nargs="+", type=str)
+        self.__parser.add_argument("-t", "--title", nargs="+", type=str)
+        self.__parser.add_argument("-F", "--titles_json", type=str)
+        self.__parser.add_argument("-X", "--gui", action="store_true")
 
     def parse_arguments(self):
         """ Returns parsed arguments."""
-        return self._parser.parse_args()
+        return self.__parser.parse_args()
 
     @staticmethod
     def validate_filter(current_filter):
